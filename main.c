@@ -9,7 +9,8 @@ typedef GtkWidget * layout;
 void play1v1(int argc, char* argv[]);
 layout Turn;
 layout mainDisplay();
-layout WWindow;
+layout aWindow; //after Window
+layout bWindow; //before Window;
 layout resetButton;
 
 int Count = 0;
@@ -151,11 +152,11 @@ void play1v1(int argc, char* argv[]) {
     gtk_container_add(window, alignment);
 
     g_print("\nPlayer X's turn, enter the place no[1-9]\n");
-    gtk_widget_hide(WWindow);
+    
 
-    WWindow = window;
+    aWindow = window;
 
-    displayFinal(WWindow);
+    displayFinal(aWindow);
 }
 
 // BACKEND    BACKEND    BACKEND   BACKEND
@@ -226,6 +227,8 @@ void displayFinal(layout window) {
 
     gtk_window_maximize(window);
     gtk_widget_show_all(window);
+    gtk_widget_hide(bWindow);
+    bWindow = window;
     
 }
 
@@ -250,10 +253,9 @@ layout mainDisplay() {
     gtk_container_add(alignment, vbox);
     gtk_container_add(window, alignment);
 
-    gtk_widget_hide(WWindow);
-    WWindow = window;
+    aWindow = window;
 
-    displayFinal(WWindow);
+    displayFinal(aWindow);
 }
 
 // MAIN FUCNTION     MAIN FUCNTION     MAIN FUCNTION  
