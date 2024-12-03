@@ -17,6 +17,8 @@ int Count = 0;
 int* count = &Count;
 int ButtonNum = 0;
 int *buttonNum = &ButtonNum;
+int alive = 1; //for quitting after winning
+int *Alive = &alive;
 
 //back-end
 int M[10],N[10],topm = -1,topn = -1;
@@ -35,13 +37,13 @@ int buttonPressed[9];
 void buttonText(layout widget, int data) {
     int i; 
     //button clicking only once 
-    if (buttonPressed[data-1] == 0)  {
+    if (buttonPressed[data-1] == 0 && alive == 1)  {
         buttonPressed[data-1] = 1;
         (*count)++; 
         if (Count <= 9) {
             char* Text = (Count % 2 == 0) ? "O" : "X" ;
             char* player = (Count % 2 == 0) ? "Player X" : "Player O" ;
-            //g_print("count = %d, buttonNumber = %d",count, data);
+            //g_print("count = %d, buttonNumber = %d\n",Count, data);
             gtk_button_set_label(widget, Text);
             gtk_label_set_text(Turn, player);
 
@@ -56,7 +58,7 @@ void buttonText(layout widget, int data) {
             g_print("\t %c | %c | %c \n",b[3],b[4],b[5]);
             g_print("\t---|---|---\n");
             g_print("\t %c | %c | %c \n",b[6],b[7],b[8]);
-            
+
             //win condition check
             if (Count % 2 == 0) {
                 N[++topn] = data;
@@ -105,6 +107,7 @@ void resetValues() {
     }
     *count = 0;
     *buttonNum = 0;
+    *Alive = 1;
     topm = topn = -1;
 }
 layout reset(int argc, char* argv[]) {
@@ -152,10 +155,8 @@ void play1v1(int argc, char* argv[]) {
     gtk_container_add(window, alignment);
 
     g_print("\nPlayer X's turn, enter the place no[1-9]\n");
-    
 
-    aWindow = window;
-
+    aWindow = window; 
     displayFinal(aWindow);
 }
 
@@ -164,15 +165,19 @@ void play1v1(int argc, char* argv[]) {
 // NO CHANGE TO BACKEND FUNCTIONS (for now)
 void victoryX(int a){
   if(a==3){
-    gtk_label_set_text(Turn, "GAME OVER"); 
+    gtk_label_set_text(Turn, "GAME OVER");
+    gtk_button_set_label(resetButton, "Play Again"); 
     g_print("X IS THE WINNER!!!\n");
+    *Alive = 0; //dead
   }
 }
 
 void victoryY(int a){
   if(a==3){
     gtk_label_set_text(Turn, "GAME OVER"); 
+    gtk_button_set_label(resetButton, "Play Again");  
     g_print("O IS THE WINNER!!!\n");
+    *Alive = 0; //dead
   }
 }
 
@@ -184,42 +189,44 @@ void check(int k[10], int XorY) {
     else  victory = victoryY;
     
     if (topm >= 2) {
-    for(i = 0 ;i < topm + 1; i++) {
-      if (k[i] == 1 || k[i] == 2 || k[i] == 3 ) {
-          counth1++;
-          victory(counth1);
-      }
-      if (k[i] == 4 || k[i] == 5 || k[i] == 6 ) {
-          counth2++;
-          victory(counth2);
-      }
-      if (k[i] == 7 || k[i] == 8 || k[i] == 9 ) {
-          counth3++;
-          victory(counth3);
-      }
-      if (k[i] == 1 || k[i] == 4 || k[i] == 7 ) {
-          countv1++;
-          victory(countv1);
-      }
-      if (k[i] == 2 || k[i] == 5 || k[i] == 8 ) {
-          countv2++;
-          victory(countv2);
-      }
-      if (k[i] == 3 || k[i] == 6 || k[i] == 9 ) {
-          countv3++;
-          victory(countv3);
-      }
-      if (k[i] == 1 || k[i] == 5 || k[i] == 9 ) {
-          countlc++;
-          victory(countlc);
-      }
-      if (k[i] == 3 || k[i] == 5 || k[i] == 7 ) {
-          countrc++;
-          victory(countrc);
-      }
+        for(i = 0 ;i < topm + 1; i++) {
+            if (k[i] == 1 || k[i] == 2 || k[i] == 3 ) {
+                counth1++;
+                victory(counth1);
+            }
+            if (k[i] == 4 || k[i] == 5 || k[i] == 6 ) {
+                counth2++;
+                victory(counth2);
+            }
+            if (k[i] == 7 || k[i] == 8 || k[i] == 9 ) {
+                counth3++;
+                victory(counth3);
+            }
+            if (k[i] == 1 || k[i] == 4 || k[i] == 7 ) {
+                countv1++;
+                victory(countv1);
+            }
+            if (k[i] == 2 || k[i] == 5 || k[i] == 8 ) {
+                countv2++;
+                victory(countv2);
+            }
+            if (k[i] == 3 || k[i] == 6 || k[i] == 9 ) {
+                countv3++;
+                victory(countv3);
+            }
+            if (k[i] == 1 || k[i] == 5 || k[i] == 9 ) {
+                countlc++;
+                victory(countlc);
+            }
+            if (k[i] == 3 || k[i] == 5 || k[i] == 7 ) {
+                countrc++;
+                victory(countrc);
+            }
+            // for(j = 1; j < 5; j++) {
+            //     if (k[i] == j || k[i] == 5 || k[i] = 10-j)
+            // }
+        }
     }
-  }
-    
 }
 // NO CHNAGE TO BACKEND 
 
