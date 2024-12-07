@@ -13,7 +13,7 @@ layout aWindow; //after Window
 layout bWindow; //before Window;
 layout resetButton;
 layout button[9];
-int computer_move(int k[10]) ;
+int computer_move(int k[9]) ;
 
 int Count = 0;
 int* count = &Count;
@@ -23,12 +23,12 @@ int alive = 1; //for quitting after winning
 int *Alive = &alive;
 
 //back-end
-int M[10],N[10],topm = -1,topn = -1;
+int M[9],N[9],topm = -1,topn = -1;
 int i,chance = 0,place_value,mode;
 // Function pointer
 typedef void (*Func)(int);
 Func victory;
-int check(int k[10], int XorY, int mode);
+int check(int k[9], int XorY, int mode);
 
 //Functions to shorten code
 int freeWill(int condition, char array[], int index1, int index2, int index3) {
@@ -70,30 +70,32 @@ void buttonTextBot(layout widget, int data) {
             check(M, 1, 0);
 
             //for 'O'
-            move = check(N, 0, 1);
-            if (move == 25) move = check(M, 1, 1);
-            if (move == 25) {
-                if (M[0] == 5) {
-                    if (b[(M[topm]-6)-1] == ' ') move = M[topm] - 6;
+            if (Count <= 9 && alive == 1) {
+                move = check(N, 0, 1);
+                if (move == 25) move = check(M, 1, 1);
+                if (move == 25) {
+                    if (M[0] == 5) {
+                        if (b[(M[topm]-6)-1] == ' ') move = M[topm] - 6;
+                        else move = computer_move(M);
+                    } 
                     else move = computer_move(M);
-                } 
-                else move = computer_move(M);
+                }
+                N[++topn] = move;
+                b[move - 1] = 'O';
+                buttonPressed[move - 1] = 1;
+                gtk_button_set_label(button[move - 1], "O");
+                
+                g_print("\nBot played at no- %d\n",move);
+                g_print("\t %c | %c | %c \n",b[0],b[1],b[2]);
+                g_print("\t---|---|---\n");
+                g_print("\t %c | %c | %c \n",b[3],b[4],b[5]);
+                g_print("\t---|---|---\n");
+                g_print("\t %c | %c | %c \n",b[6],b[7],b[8]);
+                
+                //g_print("count = %d, buttonNumber = %d, move = %d\n",Count, data, move);
+                check(N, 0, 0);
             }
-            N[++topn] = move;
-            b[move - 1] = 'O';
-            buttonPressed[move - 1] = 1;
-            gtk_button_set_label(button[move - 1], "O");
-            
-            g_print("\nBot played at no- %d\n",move);
-            g_print("\t %c | %c | %c \n",b[0],b[1],b[2]);
-            g_print("\t---|---|---\n");
-            g_print("\t %c | %c | %c \n",b[3],b[4],b[5]);
-            g_print("\t---|---|---\n");
-            g_print("\t %c | %c | %c \n",b[6],b[7],b[8]);
-
-            g_print("count = %d, buttonNumber = %d, move =%d\n",Count, data, move);
-            check(N, 0, 0);
-
+            //for O
             if (Count < 9 && alive == 1) g_print("\nX\'s turn, enter the place no[1-9]\n");
             //(backend) 
         } 
@@ -173,6 +175,8 @@ void resetValues() {
     for (i = 0; i < 9; i++) {
         b[i] = ' '; 
         buttonPressed[i] = 0;
+        M[i] = 0;
+        N[i] = 0;
     }
     *count = 0;
     *buttonNum = 0;
@@ -296,7 +300,7 @@ void victoryY(int a){
   }
 }
 
-int check(int k[10], int XorY, int mode) {
+int check(int k[9], int XorY, int mode) {
     int i,counth1=0,counth2=0,counth3=0,countv1=0,countv2=0,countv3=0,countlc=0,countrc=0;
     
     // to determine whether victoryX or victoryY
@@ -361,11 +365,14 @@ int check(int k[10], int XorY, int mode) {
     }
 }
 
-int computer_move(int k[10]) {
+int computer_move(int k[9]) {
     if (b[(k[topm] - 3) - 1] == ' ') return k[topm] - 3 ;
     if (b[(k[topm] - 1) - 1] == ' ') return k[topm] - 1 ;
-    if (b[(k[topm] + 3) - 1] == ' ') return k[topm] + 3 ;
     if (b[(k[topm] + 1) - 1] == ' ') return k[topm] + 1 ;
+    if (b[(k[topm] + 3) - 1] == ' ') return k[topm] + 3 ;
+    for (int i = 0; i < 9; i++) {
+        if (b[i] == ' ') return i + 1;
+    }
 }
 // NO CHNAGE TO BACKEND 
 
