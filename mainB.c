@@ -28,27 +28,22 @@ void display(char b[])
     printf("---|---|---\n");
     printf(" %c | %c | %c \n", b[3], b[4], b[5]);
     printf("---|---|---\n");
-    printf(" %c | %c | %c \n", b[6], b[7], b[8]);
+    printf(" %c | %c | %c \n\n", b[6], b[7], b[8]);
 }
 void victoryX(int a)
 {
     if (a == 3)
     {
-        gtk_label_set_text(Turn, "\tGAME OVER \nX  IS  THE  WINNER !!!");
-        gtk_button_set_label(resetButton, "Play Again");
-        g_print("X IS THE WINNER!!!\n");
-        *Alive = 0; // dead
+        printf("X IS THE WINNER!!!");
+        exit(0);
     }
 }
-
 void victoryY(int a)
 {
     if (a == 3)
     {
-        gtk_label_set_text(Turn, "\tGAME OVER \nO  IS  THE  WINNER !!!");
-        gtk_button_set_label(resetButton, "Play Again");
-        g_print("O IS THE WINNER!!!\n");
-        *Alive = 0; // dead
+        printf("O IS THE WINNER!!!");
+        exit(0);
     }
 }
 // single Function to check for X and Y by passing parameters
@@ -112,29 +107,29 @@ int check(int k[10], int XorY, int mode)
     {
         if (topn == -1)
         {
-            if (b[4] == ' ')
+            if (a[4] == ' ')
                 return 5;
             else
                 return 1;
         }
         if (topm >= 1)
         {
-            if (freeWill(counth1, b, 0, 1, 2) != -1)
-                return freeWill(counth1, b, 0, 1, 2);
-            if (freeWill(counth2, b, 3, 4, 5) != -1)
-                return freeWill(counth2, b, 3, 4, 5);
-            if (freeWill(counth3, b, 6, 7, 8) != -1)
-                return freeWill(counth3, b, 6, 7, 8);
-            if (freeWill(countv1, b, 0, 3, 6) != -1)
-                return freeWill(countv1, b, 0, 3, 6);
-            if (freeWill(countv2, b, 1, 4, 7) != -1)
-                return freeWill(countv2, b, 1, 4, 7);
-            if (freeWill(countv3, b, 2, 5, 8) != -1)
-                return freeWill(countv3, b, 2, 5, 8);
-            if (freeWill(countlc, b, 0, 4, 8) != -1)
-                return freeWill(countlc, b, 0, 4, 8);
-            if (freeWill(countrc, b, 2, 4, 6) != -1)
-                return freeWill(countrc, b, 2, 4, 6);
+            if (freeSpace(counth1, a, 0, 1, 2) != -1)
+                return freeSpace(counth1, a, 0, 1, 2);
+            if (freeSpace(counth2, a, 3, 4, 5) != -1)
+                return freeSpace(counth2, a, 3, 4, 5);
+            if (freeSpace(counth3, a, 6, 7, 8) != -1)
+                return freeSpace(counth3, a, 6, 7, 8);
+            if (freeSpace(countv1, a, 0, 3, 6) != -1)
+                return freeSpace(countv1, a, 0, 3, 6);
+            if (freeSpace(countv2, a, 1, 4, 7) != -1)
+                return freeSpace(countv2, a, 1, 4, 7);
+            if (freeSpace(countv3, a, 2, 5, 8) != -1)
+                return freeSpace(countv3, a, 2, 5, 8);
+            if (freeSpace(countlc, a, 0, 4, 8) != -1)
+                return freeSpace(countlc, a, 0, 4, 8);
+            if (freeSpace(countrc, a, 2, 4, 6) != -1)
+                return freeSpace(countrc, a, 2, 4, 6);
             return 25;
         }
     }
@@ -142,14 +137,14 @@ int check(int k[10], int XorY, int mode)
 
 int computer_move(int k[10])
 {
-    if (b[(k[topm] - 3) - 1] == ' ')
-        return k[topm] - 3;
-    if (b[(k[topm] - 1) - 1] == ' ')
+    if (a[(k[topm] - 1) - 1] == ' ')
         return k[topm] - 1;
-    if (b[(k[topm] + 3) - 1] == ' ')
-        return k[topm] + 3;
-    if (b[(k[topm] + 1) - 1] == ' ')
+    if (a[(k[topm] + 1) - 1] == ' ')
         return k[topm] + 1;
+    if (a[(k[topm] - 3) - 1] == ' ')
+        return k[topm] - 3;
+    if (a[(k[topm] + 3) - 1] == ' ')
+        return k[topm] + 3;
     for (int i = 0; i < 9; i++)
     {
         if (a[i] == ' ')
@@ -209,21 +204,31 @@ void single_player()
             break;
         if (chance == 1)
         {
-            move = check(N, 0, 1);
-            if (move == 25)
-                move = check(M, 1, 1);
-            if (move == 25)
+            if (M[topm] == 9 && M[topm - 1] == 2 && i == 1)
+                move = 6;
+            else if (M[topm] == 3 && M[topm - 1] == 8 && i == 1)
+                move = 6;
+            else if (M[topm] == 1 && M[topm - 1] == 8 && i == 1)
+                move = 4;
+            else
             {
-                if (M[0] == 5)
+                move = check(N, 0, 1);
+                if (move == 25)
+                    move = check(M, 1, 1);
+                if (move == 25)
                 {
-                    if (a[(M[topm] - 6) - 1] == ' ')
-                        move = M[topm] - 6;
+                    if (M[0] == 5)
+                    {
+                        if (a[(M[topm] - 6) - 1] == ' ')
+                            move = M[topm] - 6;
+                        else
+                            move = computer_move(M);
+                    }
                     else
                         move = computer_move(M);
                 }
-                else
-                    move = computer_move(M);
             }
+            printf("Bot played at no: %d\n", move);
             N[++topn] = move;
             a[move - 1] = 'O';
             display(a);

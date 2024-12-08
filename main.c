@@ -6,19 +6,18 @@ typedef GtkWidget * layout;
 
 //global declarations
 //front-end
-void play1v1(int argc, char* argv[]);
+layout button[9];
 layout Turn;
 layout mainDisplay();
 layout aWindow; //after Window
 layout bWindow; //before Window;
 layout resetButton;
-layout button[9];
 int computer_move(int k[9]) ;
 
 int Count = 0;
-int* count = &Count;
-int ButtonNum = 0;
-int *buttonNum = &ButtonNum;
+int *count = &Count;
+int robot = 0;
+int *Robot = &robot;
 int alive = 1; //for quitting after winning
 int *Alive = &alive;
 
@@ -43,21 +42,20 @@ char b[9]; // = { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' };
 int buttonPressed[9];
 
 // START 
-void buttonTextBot(layout widget, int data) {
-    int move = 0 ;
+void buttonText(layout widget, int data) {
+    int move = 0; 
+    //button clicking only once 
     if (buttonPressed[data] == 0 && alive == 1)  {
         buttonPressed[data] = 1;
-        (*count)++;
+        (*count)++; 
         if (Count <= 9) {
-            char* Text = "X";
-            char* player = "Player X";
+            char* Text = (Count % 2 == 0 && robot == 0) ? "O" : "X" ;
+            char* player = (Count % 2 == 0 || robot == 1) ? "Player X" : "Player O" ;
+            //g_print("count = %d, buttonNumber = %d\n",Count, data);
             gtk_button_set_label(widget, Text);
             gtk_label_set_text(Turn, player);
 
-            //(backend)
-            b[data] = 'X'; 
-            (*count)++;
-
+            b[data] = (Text == "O" && robot == 0) ? 'O' : 'X';
             // display func from BACKEND
             g_print("\t %c | %c | %c \n",b[0],b[1],b[2]);
             g_print("\t---|---|---\n");
@@ -66,38 +64,57 @@ void buttonTextBot(layout widget, int data) {
             g_print("\t %c | %c | %c \n",b[6],b[7],b[8]);
 
             //win condition check
-            M[++topm] = data + 1;
-            check(M, 1, 0);
-
-            //for 'O'
-            if (Count <= 9 && alive == 1) {
-                move = check(N, 0, 1);
-                if (move == 25) move = check(M, 1, 1);
-                if (move == 25) {
-                    if (M[0] == 5) {
-                        if (b[(M[topm]-6)-1] == ' ') move = M[topm] - 6;
-                        else move = computer_move(M);
-                    } 
-                    else move = computer_move(M);
+            if (robot == 0) {
+                if (Count % 2 == 0) {
+                    N[++topn] = data + 1;
+                    check(N, 0, 0);
+                } else {
+                    M[++topm] = data + 1;
+                    check(M, 1, 0);
                 }
-                N[++topn] = move;
-                b[move - 1] = 'O';
-                buttonPressed[move - 1] = 1;
-                gtk_button_set_label(button[move - 1], "O");
+                if (Count < 9 && alive == 1) g_print("\n%s\'s turn, enter the place no[1-9]\n", player);
+                //(backend) 
+            } 
+            else { //robot == 1
+                M[++topm] = data + 1;
+                check(M, 1, 0);
+
+                //for 'O'
+                if (Count <= 9 && alive == 1) {
+                    if (M[topm] == 9 &&  M[topm - 1] == 2 && Count == 3) move = 6;
+                    else if (M[topm] == 3 &&  M[topm - 1] == 8 && Count == 3) move = 6;
+                    else if (M[topm] == 1 &&  M[topm - 1] == 8 && Count == 3) move = 4;
+                    else {
+                        move = check(N, 0, 1);
+                        if (move == 25) move = check(M, 1, 1);
+                        if (move == 25) {
+                            if (M[0] == 5) {
+                                if (b[(M[topm]- 6)- 1] == ' ') move = M[topm] - 6;
+                                else move = computer_move(M);
+                            } 
+                            else move = computer_move(M);
+                        }
+                    }
+                    N[++topn] = move;
+                    b[move - 1] = 'O';
+                    buttonPressed[move - 1] = 1;
+                    gtk_button_set_label(button[move - 1], "O");
                 
-                g_print("\nBot played at no- %d\n",move);
-                g_print("\t %c | %c | %c \n",b[0],b[1],b[2]);
-                g_print("\t---|---|---\n");
-                g_print("\t %c | %c | %c \n",b[3],b[4],b[5]);
-                g_print("\t---|---|---\n");
-                g_print("\t %c | %c | %c \n",b[6],b[7],b[8]);
+                    g_print("\nBot played at no- %d\n",move);
+                    g_print("\t %c | %c | %c \n",b[0],b[1],b[2]);
+                    g_print("\t---|---|---\n");
+                    g_print("\t %c | %c | %c \n",b[3],b[4],b[5]);
+                    g_print("\t---|---|---\n");
+                    g_print("\t %c | %c | %c \n",b[6],b[7],b[8]);
                 
-                //g_print("count = %d, buttonNumber = %d, move = %d\n",Count, data, move);
-                check(N, 0, 0);
+                    //g_print("count = %d, buttonNumber = %d, move = %d\n",Count, data, move);
+                    check(N, 0, 0);
+                }
+                //for O
+                (*count)++;
+                if (Count < 9 && alive == 1) g_print("\nX\'s turn, enter the place no[1-9]\n");
+                //(backend) 
             }
-            //for O
-            if (Count < 9 && alive == 1) g_print("\nX\'s turn, enter the place no[1-9]\n");
-            //(backend) 
         } 
         if (Count >= 9 && alive == 1) {
             gtk_label_set_text(Turn, "MATCH DRAW!!!"); 
@@ -108,67 +125,6 @@ void buttonTextBot(layout widget, int data) {
         }
     }
 }
-void buttonText(layout widget, int data) {
-    int i; 
-    //button clicking only once 
-    if (buttonPressed[data] == 0 && alive == 1)  {
-        buttonPressed[data] = 1;
-        (*count)++; 
-        if (Count <= 9) {
-            char* Text = (Count % 2 == 0) ? "O" : "X" ;
-            char* player = (Count % 2 == 0) ? "Player X" : "Player O" ;
-            //g_print("count = %d, buttonNumber = %d\n",Count, data);
-            gtk_button_set_label(widget, Text);
-            gtk_label_set_text(Turn, player);
-
-            b[data] = (Text == "O") ? 'O' : 'X';
-            // display func from BACKEND
-            g_print("\t %c | %c | %c \n",b[0],b[1],b[2]);
-            g_print("\t---|---|---\n");
-            g_print("\t %c | %c | %c \n",b[3],b[4],b[5]);
-            g_print("\t---|---|---\n");
-            g_print("\t %c | %c | %c \n",b[6],b[7],b[8]);
-
-            //win condition check
-            if (Count % 2 == 0) {
-                N[++topn] = data + 1;
-                check(N, 0, 0);
-            } else {
-                M[++topm] = data + 1;
-                check(M, 1, 0);
-            }
-            if (Count < 9 && alive == 1) g_print("\n%s\'s turn, enter the place no[1-9]\n", player);
-            //(backend) 
-        } 
-        if (Count == 9 && alive == 1) {
-            gtk_label_set_text(Turn, "MATCH DRAW!!!"); 
-            gtk_button_set_label(resetButton, "Play Again");
-            g_print("\nMATCH DRAW!!!\n");
-        } else {
-            return;
-        }
-    }
-}
-    
-//NO CHANGE
-layout buttonMaker(layout Button) {
-    Button = gtk_button_new_with_label(" ");
-    g_signal_connect(Button, "clicked", G_CALLBACK(buttonText),(*buttonNum)++);
-    gtk_widget_set_size_request(Button, 75, 75);
-    return Button;
-}
-
-//NO CHANGE 
-layout box(layout buttonX, layout buttonY, layout buttonZ) {
-    layout hbox = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 5);
-
-    gtk_container_add(hbox, buttonMaker(buttonX));
-    gtk_container_add(hbox, buttonMaker(buttonY));
-    gtk_container_add(hbox, buttonMaker(buttonZ));
-
-    return hbox;
-}
-
 
 void resetValues() {
     int i;
@@ -179,57 +135,16 @@ void resetValues() {
         N[i] = 0;
     }
     *count = 0;
-    *buttonNum = 0;
     *Alive = 1;
+    *Robot = 0;
     topm = topn = -1;
 }
 
 // NO CHANGE
-void play1v1(int argc, char* argv[]) {
+void play1v1_bot(layout widget, int data) {
     resetValues();
+    *Robot = data;
     //local declarations
-    layout button[9], hbox[3];
-    layout window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    g_signal_connect(window, "destroy",G_CALLBACK(gtk_main_quit), NULL);
-    gtk_container_set_border_width(window, 200);  //gtk_widget_set_size_request(window, 600, 600);
-
-    //main box
-    layout vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
-
-    layout backMain = gtk_button_new_with_label("Home");
-    g_signal_connect(backMain, "clicked", G_CALLBACK(mainDisplay), NULL);
-    layout alignHome = gtk_alignment_new(1, 0, 0, 0);
-    gtk_container_add(alignHome, backMain);
-    gtk_container_add(vbox, alignHome);
-
-    Turn = gtk_label_new("Player X");
-    gtk_container_add(vbox, Turn);
-    
-    int j, i = 0;
-    for (j = 0; j < 3; j++) {
-        //adding boxes(containing 3 buttons each) to main box and window
-        hbox[j] = box(button[i], button[++i], button[++i]);
-        gtk_container_add(vbox, hbox[j]);
-        i++;
-    }
-
-    resetButton = gtk_button_new_with_label("Reset");
-    g_signal_connect(resetButton, "clicked", G_CALLBACK(play1v1),NULL);
-    gtk_container_add(vbox, resetButton);
-
-    layout alignment = gtk_alignment_new(0.5, 0.35, 0, 0);
-    gtk_container_add(alignment, vbox);
-    
-    gtk_container_add(window, alignment);
-
-    g_print("\nPlayer X's turn, enter the place no[1-9]\n");
-
-    aWindow = window; 
-    displayFinal(aWindow);
-}
-void bot(int argc, char* argv[]) {
-    //local declarations
-    resetValues();
     layout hbox[3];
     layout window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     g_signal_connect(window, "destroy",G_CALLBACK(gtk_main_quit), NULL);
@@ -246,11 +161,11 @@ void bot(int argc, char* argv[]) {
 
     Turn = gtk_label_new("Player X");
     gtk_container_add(vbox, Turn);
-
+    
     int i, j;
     for(i = 0; i < 9; i++) {
         button[i] = gtk_button_new_with_label(" ");
-        g_signal_connect(button[i], "clicked", G_CALLBACK(buttonTextBot), (*buttonNum)++);
+        g_signal_connect(button[i], "clicked", G_CALLBACK(buttonText), i);
         gtk_widget_set_size_request(button[i], 75, 75);
     }
     i = 0;
@@ -265,7 +180,7 @@ void bot(int argc, char* argv[]) {
     }
 
     resetButton = gtk_button_new_with_label("Reset");
-    g_signal_connect(resetButton, "clicked", G_CALLBACK(bot),NULL);
+    g_signal_connect(resetButton, "clicked", G_CALLBACK(play1v1_bot), robot);
     gtk_container_add(vbox, resetButton);
 
     layout alignment = gtk_alignment_new(0.5, 0.35, 0, 0);
@@ -278,7 +193,6 @@ void bot(int argc, char* argv[]) {
     aWindow = window; 
     displayFinal(aWindow);
 }
-
 // BACKEND    BACKEND    BACKEND   BACKEND
 
 // NO CHANGE TO BACKEND FUNCTIONS (for now)
@@ -366,9 +280,9 @@ int check(int k[9], int XorY, int mode) {
 }
 
 int computer_move(int k[9]) {
-    if (b[(k[topm] - 3) - 1] == ' ') return k[topm] - 3 ;
     if (b[(k[topm] - 1) - 1] == ' ') return k[topm] - 1 ;
     if (b[(k[topm] + 1) - 1] == ' ') return k[topm] + 1 ;
+    if (b[(k[topm] - 3) - 1] == ' ') return k[topm] - 3 ;
     if (b[(k[topm] + 3) - 1] == ' ') return k[topm] + 3 ;
     for (int i = 0; i < 9; i++) {
         if (b[i] == ' ') return i + 1;
@@ -395,11 +309,11 @@ layout mainDisplay() {
     layout vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
 
     layout oneV1 = gtk_button_new_with_label("Play 1v1");
-    g_signal_connect(oneV1, "clicked", G_CALLBACK(play1v1), NULL);
+    g_signal_connect(oneV1, "clicked", G_CALLBACK(play1v1_bot), 0);
     gtk_container_add(vbox, oneV1);
 
     layout vsComp = gtk_button_new_with_label("Against bot");
-    g_signal_connect(vsComp, "clicked", G_CALLBACK(bot), NULL);
+    g_signal_connect(vsComp, "clicked", G_CALLBACK(play1v1_bot), 1);
     gtk_container_add(vbox, vsComp);
 
     layout alignment = gtk_alignment_new(0.5,0.5,0.2,0.2);
