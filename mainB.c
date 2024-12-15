@@ -135,16 +135,16 @@ int check(int k[10], int XorY, int mode)
     }
 }
 
-int computer_move(int k[10])
+int computer_move(int k[9])
 {
-    if (a[(k[topm] - 1) - 1] == ' ')
-        return k[topm] - 1;
-    if (a[(k[topm] + 1) - 1] == ' ')
-        return k[topm] + 1;
     if (a[(k[topm] - 3) - 1] == ' ')
         return k[topm] - 3;
+    if (a[(k[topm] - 1) - 1] == ' ')
+        return k[topm] - 1;
     if (a[(k[topm] + 3) - 1] == ' ')
         return k[topm] + 3;
+    if (a[(k[topm] + 1) - 1] == ' ')
+        return k[topm] + 1;
     for (int i = 0; i < 9; i++)
     {
         if (a[i] == ' ')
@@ -204,29 +204,34 @@ void single_player()
             break;
         if (chance == 1)
         {
-            if (M[topm] == 9 && M[topm - 1] == 2 && i == 1)
-                move = 6;
-            else if (M[topm] == 3 && M[topm - 1] == 8 && i == 1)
-                move = 6;
-            else if (M[topm] == 1 && M[topm - 1] == 8 && i == 1)
-                move = 4;
-            else
+            move = check(N, 0, 1);
+            if (move == 25)
+                move = check(M, 1, 1);
+            if (move == 25)
             {
-                move = check(N, 0, 1);
-                if (move == 25)
-                    move = check(M, 1, 1);
-                if (move == 25)
+                if (M[0] == 5)
                 {
-                    if (M[0] == 5)
-                    {
-                        if (a[(M[topm] - 6) - 1] == ' ')
-                            move = M[topm] - 6;
-                        else
-                            move = computer_move(M);
-                    }
+                    if (a[(M[topm] - 6) - 1] == ' ')
+                        move = M[topm] - 6;
                     else
                         move = computer_move(M);
                 }
+                else if (M[0] == 2 || M[0] == 8)
+                {
+                    if (a[(M[0] - 1) - 1] == ' ')
+                        move = M[0] - 1;
+                    else
+                        move = computer_move(M);
+                }
+                else if (M[0] == 4 || M[0] == 6)
+                {
+                    if (a[(M[0] - 3) - 1] == ' ')
+                        move = M[0] - 3;
+                    else
+                        move = computer_move(M);
+                }
+                else
+                    move = computer_move(M);
             }
             printf("Bot played at no: %d\n", move);
             N[++topn] = move;

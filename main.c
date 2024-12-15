@@ -56,6 +56,7 @@ void buttonText(layout widget, int data) {
             gtk_label_set_text(Turn, player);
 
             b[data] = (Text == "O" && robot == 0) ? 'O' : 'X';
+            g_print("%d\n", data + 1);
             // display func from BACKEND
             g_print("\t %c | %c | %c \n",b[0],b[1],b[2]);
             g_print("\t---|---|---\n");
@@ -72,7 +73,7 @@ void buttonText(layout widget, int data) {
                     M[++topm] = data + 1;
                     check(M, 1, 0);
                 }
-                if (Count < 9 && alive == 1) g_print("\n%s\'s turn, enter the place no[1-9]\n", player);
+                if (Count < 9 && alive == 1) g_print("\n%s\'s turn, enter the place no[1-9]: ", player);
                 //(backend) 
             } 
             else { //robot == 1
@@ -80,26 +81,28 @@ void buttonText(layout widget, int data) {
                 check(M, 1, 0);
 
                 //for 'O'
-                if (Count <= 9 && alive == 1) {
-                    if (M[topm] == 9 &&  M[topm - 1] == 2 && Count == 3) move = 6;
-                    else if (M[topm] == 3 &&  M[topm - 1] == 8 && Count == 3) move = 6;
-                    else if (M[topm] == 1 &&  M[topm - 1] == 8 && Count == 3) move = 4;
-                    else {
-                        move = check(N, 0, 1);
-                        if (move == 25) move = check(M, 1, 1);
-                        if (move == 25) {
-                            if (M[0] == 5) {
-                                if (b[(M[topm]- 6)- 1] == ' ') move = M[topm] - 6;
-                                else move = computer_move(M);
-                            } 
+                if (Count < 9 && alive == 1) {
+                    move = check(N, 0, 1);
+                    if (move == 25) move = check(M, 1, 1);
+                    if (move == 25){
+                        if (M[0] == 5) {
+                            if (b[(M[topm]-6)-1] == ' ') move = M[topm] - 6;
                             else move = computer_move(M);
                         }
+                        else if (M[0] == 2 || M[0] == 8){
+                            if (b[(M[0]-1)-1] == ' ') move = M[0] - 1;
+                            else move = computer_move(M);
+                        }
+                        else if (M[0] == 4 || M[0] == 6){
+                            if (b[(M[0]-3)-1] == ' ') move = M[0] - 3;
+                            else move = computer_move(M);
+                        }
+                        else move = computer_move(M);
                     }
                     N[++topn] = move;
                     b[move - 1] = 'O';
                     buttonPressed[move - 1] = 1;
-                    gtk_button_set_label(button[move - 1], "O");
-                
+                    gtk_button_set_label(button[move - 1], "O");                
                     g_print("\nBot played at no- %d\n",move);
                     g_print("\t %c | %c | %c \n",b[0],b[1],b[2]);
                     g_print("\t---|---|---\n");
@@ -112,7 +115,7 @@ void buttonText(layout widget, int data) {
                 }
                 //for O
                 (*count)++;
-                if (Count < 9 && alive == 1) g_print("\nX\'s turn, enter the place no[1-9]\n");
+                if (Count < 9 && alive == 1) g_print("\nX\'s turn, enter the place no[1-9]: ");
                 //(backend) 
             }
         } 
@@ -183,12 +186,12 @@ void play1v1_bot(layout widget, int data) {
     g_signal_connect(resetButton, "clicked", G_CALLBACK(play1v1_bot), robot);
     gtk_container_add(vbox, resetButton);
 
-    layout alignment = gtk_alignment_new(0.5, 0.35, 0, 0);
+    layout alignment = gtk_alignment_new(0.5, 0.2, 0, 0);
     gtk_container_add(alignment, vbox);
     
     gtk_container_add(window, alignment);
 
-    g_print("\nPlayer X's turn, enter the place no[1-9]\n");
+    g_print("\nPlayer X's turn, enter the place no[1-9]: ");
 
     aWindow = window; 
     displayFinal(aWindow);
@@ -280,10 +283,10 @@ int check(int k[9], int XorY, int mode) {
 }
 
 int computer_move(int k[9]) {
-    if (b[(k[topm] - 1) - 1] == ' ') return k[topm] - 1 ;
-    if (b[(k[topm] + 1) - 1] == ' ') return k[topm] + 1 ;
     if (b[(k[topm] - 3) - 1] == ' ') return k[topm] - 3 ;
+    if (b[(k[topm] - 1) - 1] == ' ') return k[topm] - 1 ;
     if (b[(k[topm] + 3) - 1] == ' ') return k[topm] + 3 ;
+    if (b[(k[topm] + 1) - 1] == ' ') return k[topm] + 1 ;
     for (int i = 0; i < 9; i++) {
         if (b[i] == ' ') return i + 1;
     }
@@ -308,6 +311,10 @@ layout mainDisplay() {
 
     layout vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 10);
 
+    layout gameName = gtk_label_new("TIC TAC TOE");
+    layout everything = gtk_box_new(GTK_ORIENTATION_VERTICAL, 70);
+    gtk_container_add(everything, gameName);
+
     layout oneV1 = gtk_button_new_with_label("Play 1v1");
     g_signal_connect(oneV1, "clicked", G_CALLBACK(play1v1_bot), 0);
     gtk_container_add(vbox, oneV1);
@@ -316,11 +323,11 @@ layout mainDisplay() {
     g_signal_connect(vsComp, "clicked", G_CALLBACK(play1v1_bot), 1);
     gtk_container_add(vbox, vsComp);
 
-    layout alignment = gtk_alignment_new(0.5,0.5,0.2,0.2);
-    gtk_container_add(alignment, vbox);
-    gtk_container_add(window, alignment);
-
-    aWindow = window;
+    gtk_container_add(everything, vbox);
+    layout alignmentFinal = gtk_alignment_new(0.5,0.2,0.2,0.2);
+    gtk_container_add(alignmentFinal, everything);
+    gtk_container_add(window, alignmentFinal);
+    
 
     displayFinal(aWindow);
 }
