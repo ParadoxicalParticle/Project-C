@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <gtk/gtk.h>
-#include <stdlib.h>
 
 typedef GtkWidget * layout;
 
@@ -12,10 +11,13 @@ layout mainDisplay();
 layout aWindow; //after Window
 layout bWindow; //before Window;
 layout resetButton;
+
 int computer_move(int k[9]) ;
 
 int Count = 0;
 int *count = &Count;
+int difficulty = 0;
+int *Difficulty = &difficulty;
 int robot = 0;
 int *Robot = &robot;
 int alive = 1; //for quitting after winning
@@ -38,7 +40,7 @@ int freeWill(int condition, char array[], int index1, int index2, int index3) {
     }
     return -1;
 }
-char b[9]; // = { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' };
+char b[9]; 
 int buttonPressed[9];
 
 // START 
@@ -50,7 +52,7 @@ void buttonText(layout widget, int data) {
         (*count)++; 
         if (Count <= 9) {
             char* Text = (Count % 2 == 0 && robot == 0) ? "O" : "X" ;
-            char* player = (Count % 2 == 0 || robot == 1) ? "Player X" : "Player O" ;
+            char* player=(Count%2 == 0||robot == 1) ? "Player X" : "Player O" ;
             //g_print("count = %d, buttonNumber = %d\n",Count, data);
             gtk_button_set_label(widget, Text);
             gtk_label_set_text(Turn, player);
@@ -73,7 +75,8 @@ void buttonText(layout widget, int data) {
                     M[++topm] = data + 1;
                     check(M, 1, 0);
                 }
-                if (Count < 9 && alive == 1) g_print("\n%s\'s turn, enter the place no[1-9]: ", player);
+                if (Count < 9 && alive == 1) 
+                    g_print("\n%s\'s turn, enter the place no[1-9]: ", player);
                 //(backend) 
             } 
             else { //robot == 1
@@ -85,19 +88,28 @@ void buttonText(layout widget, int data) {
                     move = check(N, 0, 1);
                     if (move == 25) move = check(M, 1, 1);
                     if (move == 25){
-                        if (M[0] == 5) {
-                            if (b[(M[topm]-6)-1] == ' ') move = M[topm] - 6;
+                        if (difficulty==1){
+                            if (M[0] == 5) {
+                                if (b[(M[topm]-6)-1] == ' ') move = M[topm] - 6;
+                                else move = computer_move(M);
+                            }
+                            else if (M[0] == 2 || M[0] == 8){
+                                if (b[(M[0]-1)-1] == ' ') move = M[0] - 1;
+                                else move = computer_move(M);
+                            }
+                            else if (M[0] == 4 || M[0] == 6){
+                                if (b[(M[0]-3)-1] == ' ') move = M[0] - 3;
+                                else move = computer_move(M);
+                            }
                             else move = computer_move(M);
                         }
-                        else if (M[0] == 2 || M[0] == 8){
-                            if (b[(M[0]-1)-1] == ' ') move = M[0] - 1;
+                        else {
+                             if (M[0] == 5) {
+                                if (b[(M[topm]-6)-1] == ' ') move = M[topm] - 6;
+                                else move = computer_move(M);
+                            }
                             else move = computer_move(M);
                         }
-                        else if (M[0] == 4 || M[0] == 6){
-                            if (b[(M[0]-3)-1] == ' ') move = M[0] - 3;
-                            else move = computer_move(M);
-                        }
-                        else move = computer_move(M);
                     }
                     N[++topn] = move;
                     b[move - 1] = 'O';
@@ -109,13 +121,13 @@ void buttonText(layout widget, int data) {
                     g_print("\t %c | %c | %c \n",b[3],b[4],b[5]);
                     g_print("\t---|---|---\n");
                     g_print("\t %c | %c | %c \n",b[6],b[7],b[8]);
-                
-                    //g_print("count = %d, buttonNumber = %d, move = %d\n",Count, data, move);
+
                     check(N, 0, 0);
                 }
                 //for O
                 (*count)++;
-                if (Count < 9 && alive == 1) g_print("\nX\'s turn, enter the place no[1-9]: ");
+                if (Count < 9 && alive == 1) 
+                    g_print("\nX\'s turn, enter the place no[1-9]: ");
                 //(backend) 
             }
         } 
@@ -146,12 +158,22 @@ void resetValues() {
 // NO CHANGE
 void play1v1_bot(layout widget, int data) {
     resetValues();
-    *Robot = data;
+    if (data == 11) {
+       *Robot = 1;
+       *Difficulty = 0;
+    }
+   else if(data == 12) {
+        *Robot = 1;
+        *Difficulty = 1;
+    }
+    else {
+        *Robot = data;
+    }
     //local declarations
     layout hbox[3];
     layout window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     g_signal_connect(window, "destroy",G_CALLBACK(gtk_main_quit), NULL);
-    gtk_container_set_border_width(window, 200);  //gtk_widget_set_size_request(window, 600, 600);
+    gtk_container_set_border_width(window, 200); 
 
     //main box
     layout vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
@@ -196,6 +218,27 @@ void play1v1_bot(layout widget, int data) {
     aWindow = window; 
     displayFinal(aWindow);
 }
+
+void easy_hard_mode(layout widget, int data) {
+    layout button[2];
+    layout window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    g_signal_connect(window, "destroy",G_CALLBACK(gtk_main_quit), NULL);
+    gtk_container_set_border_width(window, 200); 
+    button[0] = gtk_button_new_with_label("Easy");
+    g_signal_connect(button[0], "clicked", G_CALLBACK(play1v1_bot),11);
+    gtk_widget_set_size_request(button[0], 75, 75);
+    button[1] = gtk_button_new_with_label("Hard");
+    g_signal_connect(button[1], "clicked", G_CALLBACK(play1v1_bot), 12);
+    gtk_widget_set_size_request(button[1], 75, 75);
+    layout vbox = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5);
+    gtk_container_add(vbox, button[0]);
+    gtk_container_add(vbox, button[1]);
+    layout alignmentFinal = gtk_alignment_new(0.5,0.2,0.2,0.2);
+    gtk_container_add(alignmentFinal, vbox);
+    gtk_container_add(window, alignmentFinal);
+    aWindow = window;
+    displayFinal(aWindow);
+}
 // BACKEND    BACKEND    BACKEND   BACKEND
 
 // NO CHANGE TO BACKEND FUNCTIONS (for now)
@@ -218,7 +261,8 @@ void victoryY(int a){
 }
 
 int check(int k[9], int XorY, int mode) {
-    int i,counth1=0,counth2=0,counth3=0,countv1=0,countv2=0,countv3=0,countlc=0,countrc=0;
+    int i,counth1=0,counth2=0,counth3=0,countv1=0;
+    int countv2=0,countv3=0,countlc=0,countrc=0;
     
     // to determine whether victoryX or victoryY
     if (XorY == 1)  victory = victoryX;
@@ -258,9 +302,6 @@ int check(int k[9], int XorY, int mode) {
                 countrc++;
                 victory(countrc);
             }
-            // for(j = 1; j < 5; j++) {
-            //     if (k[i] == j || k[i] == 5 || k[i] = 10-j)
-            // }
         }
     }
     if (mode == 1) {
@@ -269,14 +310,22 @@ int check(int k[9], int XorY, int mode) {
             else return 1;
         }
         if(topm >= 1){
-            if (freeWill(counth1, b, 0, 1, 2) != -1) return freeWill(counth1, b, 0, 1, 2);
-            if (freeWill(counth2, b, 3, 4, 5) != -1) return freeWill(counth2, b, 3, 4, 5);
-            if (freeWill(counth3, b, 6, 7, 8) != -1) return freeWill(counth3, b, 6, 7, 8);
-            if (freeWill(countv1, b, 0, 3, 6) != -1) return freeWill(countv1, b, 0, 3, 6);
-            if (freeWill(countv2, b, 1, 4, 7) != -1) return freeWill(countv2, b, 1, 4, 7);
-            if (freeWill(countv3, b, 2, 5, 8) != -1) return freeWill(countv3, b, 2, 5, 8);
-            if (freeWill(countlc, b, 0, 4, 8) != -1) return freeWill(countlc, b, 0, 4, 8);
-            if (freeWill(countrc, b, 2, 4, 6) != -1) return freeWill(countrc, b, 2, 4, 6);
+            if (freeWill(counth1, b, 0, 1, 2) != -1) 
+                return freeWill(counth1, b, 0, 1, 2);
+            if (freeWill(counth2, b, 3, 4, 5) != -1) 
+                return freeWill(counth2, b, 3, 4, 5);
+            if (freeWill(counth3, b, 6, 7, 8) != -1) 
+                return freeWill(counth3, b, 6, 7, 8);
+            if (freeWill(countv1, b, 0, 3, 6) != -1) 
+                return freeWill(countv1, b, 0, 3, 6);
+            if (freeWill(countv2, b, 1, 4, 7) != -1) 
+                return freeWill(countv2, b, 1, 4, 7);
+            if (freeWill(countv3, b, 2, 5, 8) != -1) 
+                return freeWill(countv3, b, 2, 5, 8);
+            if (freeWill(countlc, b, 0, 4, 8) != -1) 
+                return freeWill(countlc, b, 0, 4, 8);
+            if (freeWill(countrc, b, 2, 4, 6) != -1) 
+                return freeWill(countrc, b, 2, 4, 6);
             return 25; 
         }
     }
@@ -320,7 +369,7 @@ layout mainDisplay() {
     gtk_container_add(vbox, oneV1);
 
     layout vsComp = gtk_button_new_with_label("Against bot");
-    g_signal_connect(vsComp, "clicked", G_CALLBACK(play1v1_bot), 1);
+    g_signal_connect(vsComp, "clicked", G_CALLBACK(easy_hard_mode), 1);
     gtk_container_add(vbox, vsComp);
 
     gtk_container_add(everything, vbox);
@@ -328,7 +377,7 @@ layout mainDisplay() {
     gtk_container_add(alignmentFinal, everything);
     gtk_container_add(window, alignmentFinal);
     
-
+    aWindow = window;
     displayFinal(aWindow);
 }
 
